@@ -1,0 +1,97 @@
+{
+  "project_name": "YouTube Creator Intelligence Platform",
+  "domain": "B2B SaaS / Data Intelligence Dashboard",
+  "theme": "light",
+  "archetype": "Archetype 4 (Swiss & High-Contrast)",
+  "emotional_tone": "Authoritative, Objective, Efficient, Professional",
+  "colors": {
+    "background": "#F4F4F5",
+    "surface": "#FFFFFF",
+    "border": "#E4E4E7",
+    "text_primary": "#09090B",
+    "text_secondary": "#52525B",
+    "primary_action": "#002BF6",
+    "primary_action_hover": "#001FD1",
+    "youtube_accent": "#E60000",
+    "success_score": "#16A34A",
+    "warning_score": "#D97706",
+    "danger_score": "#DC2626",
+    "tinted_grey": "#FAFAFA"
+  },
+  "typography": {
+    "font_families": {
+      "headings": "'Chivo', sans-serif",
+      "body": "'IBM Plex Sans', sans-serif",
+      "mono": "'JetBrains Mono', monospace"
+    },
+    "hierarchy": {
+      "h1": "text-3xl sm:text-4xl tracking-tight font-black",
+      "h2": "text-2xl sm:text-3xl tracking-tight font-bold",
+      "h3": "text-xl sm:text-2xl font-bold",
+      "h4": "text-lg sm:text-xl font-semibold",
+      "body": "text-sm sm:text-base leading-relaxed",
+      "small_labels": "text-xs uppercase tracking-[0.15em] font-semibold text-zinc-500",
+      "data_numbers": "font-mono tracking-tight"
+    },
+    "rules": [
+      "Headings must use tight letter spacing.",
+      "Overlines and labels must be uppercase with wide tracking.",
+      "Never use Inter or generic sans for headings."
+    ]
+  },
+  "layout_and_spacing": {
+    "grid_system": "Control Room Grid (Dense, Data-heavy)",
+    "spacing_scale": "p-1, p-2, p-4, p-6, p-8",
+    "density": "Tight (gap-4 or gap-6) for dashboards. Use h-full on children to stretch.",
+    "sidebar": "Fixed width (e.g., w-64 or w-72), sticky, containing advanced filters.",
+    "main_content": "Fluid width, dense table or grid for creator search results.",
+    "surface_strategy": "Grid Borders (The 'Technical' Look). Expose the skeleton. Container uses border-collapse style layouts with 1px subtle borders (border-border). Zero or minimal shadow."
+  },
+  "components": {
+    "buttons": "Flat, sharp corners (rounded-sm or rounded-none). No heavy shadows. High contrast text.",
+    "cards": "Flat background, 1px subtle border, no shadow. Hover: Slight lift (-translate-y-1), subtle shadow (shadow-md).",
+    "forms_and_inputs": "Shadcn based. Sharp borders. Focus state must have high contrast ring (focus:ring-2 focus:ring-primary_action focus:ring-offset-1).",
+    "tables": "Dense rows, left-aligned data, right-aligned metrics (numbers). Explicit hover states on rows (hover:bg-zinc-50).",
+    "charts": "Recharts or Shadcn charts. Use primary action color and neutral greys. Accessible palettes.",
+    "prospect_score_card": "Elevated component. Large bold typography for the 0-100 score. Color-coded based on value (Green > 80, Yellow 50-79, Red < 50)."
+  },
+  "motion_and_interactions": {
+    "hover_states": "All interactive elements must explicitly set text color on hover (e.g., hover:bg-zinc-900 hover:text-white).",
+    "focus_states": "High contrast outlines.",
+    "transitions": "Use specific properties (transition: transform 0.2s ease, opacity 0.2s ease). No 'transition-all'.",
+    "loading_states": "Use skeleton loaders matching the exact dimensions of the expected content."
+  },
+  "icons": {
+    "library": "@phosphor-icons/react",
+    "usage": "Use Phosphor Icons (Regular or Bold weight) for dense dashboards to maintain clarity at small sizes."
+  },
+  "accessibility_and_testing": {
+    "contrast": "Ensure minimum 4.5:1 ratio for normal text and 3:1 for large text.",
+    "testing_attributes": "All interactive and key informational elements MUST include a data-testid attribute (kebab-case, role-based). e.g., data-testid='search-input', data-testid='export-csv-button'."
+  },
+  "media_and_assets": {
+    "instructions_to_main_agent": "Use these exact URLs for mocked creator avatars and data. NEVER use placeholder text or dummyimage.com.",
+    "mock_data_avatars": [
+      {
+        "category": "Educational / Professional Vlogger",
+        "url": "https://images.unsplash.com/photo-1558730234-d8b2281b0d00?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2OTV8MHwxfHNlYXJjaHwyfHx2bG9nZ2VyJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzgzMDA4NTA0fDA&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "category": "Entertainment / Lifestyle Vlogger",
+        "url": "https://images.pexels.com/photos/8303436/pexels-photo-8303436.jpeg"
+      },
+      {
+        "category": "Technical / Gamer Creator",
+        "url": "https://images.unsplash.com/photo-1610041321420-a596dd14ebc9?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxnYW1lciUyMHBvcnRyYWl0fGVufDB8fHx8MTc4MzAwODUwNHww&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "category": "Commercial / Business Channel",
+        "url": "https://images.unsplash.com/photo-1573497161161-c3e73707e25c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1OTV8MHwxfHNlYXJjaHwzfHxidXNpbmVzcyUyMHByb2Zlc3Npb25hbCUyMHBvcnRyYWl0fGVufDB8fHx8MTc4Mjg5MzI5N3ww&ixlib=rb-4.1.0&q=85"
+      },
+      {
+        "category": "Gamer / Streamer",
+        "url": "https://images.pexels.com/photos/15494942/pexels-photo-15494942.jpeg"
+      }
+    ]
+  }
+}
