@@ -1,0 +1,21 @@
+{
+  "summary": "Re-verified all frontend flows after refactor (helpers extraction, stable array keys). All 5 requested flows work end-to-end: homepage loads with search input/chips/filters/empty table, chip-ai-automation triggers search returning 10 result rows with meta, row click navigates to /channel/:id rendering channel-detail with prospect-score-card (verdict 'Worth reaching' at score 75), metric-strip and all 5 tabs, Socials & Contact tab shows socials-block + contacts-block with correctly colored badges (green #16A34A for high confidence, orange #D97706 for others), Similar creators tab loads similar-grid with 8 creator cards, and CSV export downloads creators.csv successfully.",
+  "tested_scope": ["frontend", "integration"],
+  "passed": [
+    "Homepage loads with search-input, chip-ai-automation, results-table (empty state), and filter sidebar",
+    "chip-ai-automation click -> 10 result rows populated, results-meta shows '10 creators · \"ai automation\"'",
+    "CSV export (export-csv-btn) downloads creators.csv after search",
+    "Row click navigates to /channel/UC2ojq-nuP8ceeHqiroeKhBA and renders channel-detail",
+    "prospect-score-card shows verdict label 'Worth reaching' (score 75 -> [50,80) range as spec'd)",
+    "metric-strip visible with all metrics",
+    "All 5 tabs visible: tab-overview, tab-socials, tab-content, tab-videos, tab-similar",
+    "Socials & Contact tab renders socials-block + contacts-block; contact badge colors verified: rgb(22,163,74) green for 'high' and rgb(217,119,6) orange (#D97706) otherwise",
+    "Similar creators tab renders similar-grid with 8 creator cards"
+  ],
+  "failed": [],
+  "action_items": [],
+  "success_rate": {"backend": "not tested (frontend-only request)", "frontend": "100%"},
+  "retest_needed": false,
+  "full_testing_deferred": true,
+  "notes": "Refactor (verdictLabel/contactIcon/contactColor helpers, stable keys like platform-username and ${k.type}-${k.value}-${i}) did not break any existing flows. No React key warnings observed. No console errors surfaced during flow."
+}

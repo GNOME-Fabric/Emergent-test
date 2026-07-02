@@ -66,7 +66,6 @@ export default function SearchPage() {
         toast.info("No creators matched your filters. Try loosening constraints.");
       }
     } catch (e) {
-      console.error(e);
       toast.error(e?.response?.data?.detail || "Search failed");
     } finally {
       setLoading(false);
@@ -225,7 +224,7 @@ export default function SearchPage() {
               <h2 className="font-heading font-bold text-xl">Results</h2>
               {meta && (
                 <span className="overline" data-testid="results-meta">
-                  {meta.count} creators &middot; "{meta.q}"
+                  {meta.count} creators &middot; &ldquo;{meta.q}&rdquo;
                 </span>
               )}
             </div>
@@ -252,7 +251,7 @@ export default function SearchPage() {
             {loading && (
               <div className="p-4 space-y-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                  <div key={`skel-${i}`} className="flex items-center gap-3">
                     <Skeleton className="w-10 h-10 rounded-full" />
                     <div className="flex-1 space-y-1">
                       <Skeleton className="h-4 w-1/3" />

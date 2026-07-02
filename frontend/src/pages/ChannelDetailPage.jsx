@@ -20,6 +20,23 @@ const PLATFORM_ICON = {
   kick: PlayCircle,
 };
 
+function verdictLabel(score) {
+  if (score >= 80) return "High priority";
+  if (score >= 50) return "Worth reaching";
+  return "Low priority";
+}
+
+function contactIcon(type) {
+  if (type === "email") return Mail;
+  if (type === "website") return Globe;
+  if (type === "linkedin") return Linkedin;
+  return Instagram;
+}
+
+function contactColor(confidence) {
+  return confidence === "high" ? "#16A34A" : "#D97706";
+}
+
 export default function ChannelDetailPage() {
   const { channelId } = useParams();
   const nav = useNavigate();
@@ -119,11 +136,11 @@ export default function ChannelDetailPage() {
             <div className="flex-1">
               <div className="text-xs uppercase tracking-widest text-zinc-500 font-semibold">Verdict</div>
               <div className="font-heading font-bold text-lg mb-2" style={{ color: scoreColor(c.prospect_score) }}>
-                {c.prospect_score >= 80 ? "High priority" : c.prospect_score >= 50 ? "Worth reaching" : "Low priority"}
+                {verdictLabel(c.prospect_score)}
               </div>
               <ul className="text-xs space-y-1 text-zinc-600">
-                {(c.prospect_reasons || []).slice(0, 4).map((r, i) => (
-                  <li key={i} className="flex gap-1.5"><Sparkles size={11} className="mt-0.5 text-[#002BF6] flex-shrink-0" /><span>{r}</span></li>
+                {(c.prospect_reasons || []).slice(0, 4).map((r) => (
+                  <li key={r} className="flex gap-1.5"><Sparkles size={11} className="mt-0.5 text-[#002BF6] flex-shrink-0" /><span>{r}</span></li>
                 ))}
               </ul>
             </div>
@@ -189,10 +206,10 @@ export default function ChannelDetailPage() {
               <div className="overline mb-4">Discovered social profiles</div>
               {(c.social_links || []).length === 0 && <div className="text-sm text-zinc-500">No public social links discovered.</div>}
               <ul className="space-y-2">
-                {(c.social_links || []).map((s, i) => {
+                {(c.social_links || []).map((s) => {
                   const Icon = PLATFORM_ICON[s.platform] || Globe;
                   return (
-                    <li key={i} className="flex items-center justify-between border border-[#E4E4E7] px-3 py-2">
+                    <li key={`${s.platform}-${s.username}`} className="flex items-center justify-between border border-[#E4E4E7] px-3 py-2">
                       <div className="flex items-center gap-2 min-w-0">
                         <Icon size={14} className="text-[#09090B] flex-shrink-0" />
                         <span className="uppercase text-xs tracking-widest font-semibold text-zinc-500 w-20">{s.platform}</span>
@@ -208,18 +225,21 @@ export default function ChannelDetailPage() {
               <div className="overline mb-4">Contact intelligence</div>
               {(c.contacts || []).length === 0 && <div className="text-sm text-zinc-500">No public contact clues found.</div>}
               <ul className="space-y-2">
-                {(c.contacts || []).map((k, i) => (
-                  <li key={i} className="flex items-center justify-between border border-[#E4E4E7] px-3 py-2">
+                {(c.contacts || []).map((k, i) => {
+                  const CIcon = contactIcon(k.type);
+                  return (
+                  <li key={`${k.type}-${k.value}-${i}`} className="flex items-center justify-between border border-[#E4E4E7] px-3 py-2">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
-                      {k.type === "email" ? <Mail size={14} /> : k.type === "website" ? <Globe size={14} /> : k.type === "linkedin" ? <Linkedin size={14} /> : <Instagram size={14} />}
+                      <CIcon size={14} />
                       <span className="uppercase text-[10px] tracking-widest font-semibold text-zinc-500 w-24">{k.type.replace("_", " ")}</span>
                       <span className="font-mono text-xs truncate flex-1">{k.value}</span>
                     </div>
-                    <Badge className="rounded-none text-[10px]" style={{ background: k.confidence === "high" ? "#16A34A" : "#D97706", color: "white" }}>
+                    <Badge className="rounded-none text-[10px]" style={{ background: contactColor(k.confidence), color: "white" }}>
                       {k.confidence}
                     </Badge>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             </div>
           </div>
@@ -289,7 +309,7 @@ export default function ChannelDetailPage() {
                     <div className="font-mono text-lg font-bold" style={{ color: scoreColor(s.similarity) }}>{s.similarity}</div>
                   </div>
                   <ul className="text-xs text-zinc-600 space-y-1">
-                    {(s.reasons || []).slice(0, 3).map((r, i) => (<li key={i}>· {r}</li>))}
+                    {(s.reasons || []).slice(0, 3).map((r) => (<li key={r}>· {r}</li>))}
                   </ul>
                 </Link>
               ))}
@@ -320,7 +340,7 @@ function TopicsBlock({ title, items }) {
       <div className="overline mb-2">{title}</div>
       <div className="flex flex-wrap gap-1.5">
         {items.slice(0, 12).map((t, i) => (
-          <span key={i} className="px-2 py-0.5 text-xs border border-zinc-300 bg-[#FAFAFA] font-mono">{t}</span>
+          <span key={`${t}-${i}`} className="px-2 py-0.5 text-xs border border-zinc-300 bg-[#FAFAFA] font-mono">{t}</span>
         ))}
       </div>
     </div>

@@ -3,9 +3,12 @@ import axios from "axios";
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
 
+const REQUEST_TIMEOUT_MS = 120000;
+const SECONDS_PER_DAY = 86400;
+
 export const api = axios.create({
   baseURL: API,
-  timeout: 120000,
+  timeout: REQUEST_TIMEOUT_MS,
 });
 
 export function fmtNumber(n) {
@@ -33,7 +36,7 @@ export function fmtDate(iso) {
 export function daysAgo(iso) {
   if (!iso) return null;
   const d = new Date(iso);
-  return Math.floor((Date.now() - d.getTime()) / (86400 * 1000));
+  return Math.floor((Date.now() - d.getTime()) / (SECONDS_PER_DAY * 1000));
 }
 
 export function scoreColor(s) {
