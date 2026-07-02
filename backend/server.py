@@ -25,7 +25,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 YT_API_KEY = os.environ.get('YOUTUBE_API_KEY', '')
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY', '')
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', os.environ.get('EMERGENT_LLM_KEY', ''))
 
 app = FastAPI(title="Creator Intelligence API")
 api_router = APIRouter(prefix="/api")
@@ -212,21 +212,21 @@ def compute_prospect_score(metrics: Dict[str, Any]) -> (int, List[str]):
 
 async def batch_classify(channels: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
     """Classify multiple channels in a single LLM call. Returns {channel_id: {niche, subniches}}."""
-    if not EMERGENT_LLM_KEY or not channels:
+    if not GOOGLE_API_KEY or not channels:
         return {}
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        import google.generativeai as genai
+        genai.configure(api_key=GOOGLE_API_KEY)
         sys_msg = (
             "You classify YouTube channels for B2B prospecting. "
             "Return ONLY valid JSON: an object with key 'channels' -> array of objects, one per input, "
             "each having: id (echo input id), main_niche (short string), subniches (array of up to 3 short strings). "
             "No prose, no markdown."
         )
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"batch-{datetime.now(timezone.utc).timestamp()}",
-            system_message=sys_msg,
-        ).with_model("openai", "gpt-5.2")
+        model = genai.GenerativeModel(
+            model_name="gemini-2.0-flash",
+            system_instruction=sys_msg
+        )
         payload = {"channels": [{
             "id": c["id"],
             "name": c["name"],
@@ -237,11 +237,14 @@ async def batch_classify(channels: List[Dict[str, Any]]) -> Dict[str, Dict[str, 
         async with AI_SEM:
             for attempt in range(3):
                 try:
-                    resp = await chat.send_message(UserMessage(text=json.dumps(payload, ensure_ascii=False)))
-                    text = resp if isinstance(resp, str) else str(resp)
+                    response = await model.generate_content_async(
+                        contents=json.dumps(payload, ensure_ascii=False),
+                        generation_config={"response_mime_type": "application/json"}
+                    )
+                    text = response.text
                     break
                 except Exception as e:
-                    if "429" in str(e) or "rate" in str(e).lower() or "concurren" in str(e).lower():
+                    if "429" in str(e) or "rate" in str(e).lower() or "quota" in str(e).lower():
                         await asyncio.sleep(1.5 * (attempt + 1)); continue
                     raise
             else:
@@ -264,8 +267,8 @@ async def batch_classify(channels: List[Dict[str, Any]]) -> Dict[str, Dict[str, 
 AI_SEM = asyncio.Semaphore(1)
 
 async def classify_with_ai(name: str, description: str, keywords: List[str], video_titles: List[str]) -> Dict[str, Any]:
-    """Use GPT via emergentintegrations to classify niche, extract topics/brands/products/software and content mix."""
-    if not EMERGENT_LLM_KEY:
+    """Use Gemini to classify niche, extract topics/brands/products/software and content mix."""
+    if not GOOGLE_API_KEY:
         return {}
     async with AI_SEM:
         return await _classify_with_ai_inner(name, description, keywords, video_titles)
@@ -273,7 +276,8 @@ async def classify_with_ai(name: str, description: str, keywords: List[str], vid
 
 async def _classify_with_ai_inner(name: str, description: str, keywords: List[str], video_titles: List[str]) -> Dict[str, Any]:
     try:
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        import google.generativeai as genai
+        genai.configure(api_key=GOOGLE_API_KEY)
         sys_msg = (
             "You are an expert YouTube creator analyst. Classify channels for B2B prospecting. "
             "Return ONLY valid JSON with keys: main_niche (string), subniches (array of up to 5 strings), "
@@ -282,33 +286,32 @@ async def _classify_with_ai_inner(name: str, description: str, keywords: List[st
             "content_mix (object with numeric percentages 0-100 for keys: educational, entertainment, technical, commercial, institutional; must sum ~100), "
             "keywords (array of up to 10 strings). No markdown, no prose."
         )
-        chat = LlmChat(
-            api_key=EMERGENT_LLM_KEY,
-            session_id=f"classify-{name[:32]}",
-            system_message=sys_msg,
-        ).with_model("openai", "gpt-5.2")
+        model = genai.GenerativeModel(
+            model_name="gemini-2.0-flash",
+            system_instruction=sys_msg
+        )
         prompt = {
             "channel_name": name,
             "description": (description or "")[:2000],
             "keywords": keywords[:20],
             "recent_video_titles": video_titles[:20],
         }
-        msg = UserMessage(text=json.dumps(prompt, ensure_ascii=False))
-        # non-streaming for backend usage with simple retry on rate limits
         text = ""
         for attempt in range(3):
             try:
-                resp = await chat.send_message(msg)
-                text = resp if isinstance(resp, str) else str(resp)
+                response = await model.generate_content_async(
+                    contents=json.dumps(prompt, ensure_ascii=False),
+                    generation_config={"response_mime_type": "application/json"}
+                )
+                text = response.text
                 break
             except Exception as e:
-                if "429" in str(e) or "rate" in str(e).lower() or "concurren" in str(e).lower():
+                if "429" in str(e) or "rate" in str(e).lower() or "quota" in str(e).lower():
                     await asyncio.sleep(1.5 * (attempt + 1))
                     continue
                 raise
         if not text:
             return {}
-        # extract JSON block
         m = re.search(r"\{[\s\S]*\}", text)
         if not m:
             return {}
