@@ -579,7 +579,7 @@ async def search(
     """Search YouTube channels then enrich each in parallel."""
     if not YT_API_KEY:
         raise HTTPException(500, "YouTube API key not configured")
-    max_results = max(1, min(max_results, 25))
+    max_results = max(1, min(max_results, 50))
     async with httpx.AsyncClient() as http:
         params = {
             "part": "snippet",

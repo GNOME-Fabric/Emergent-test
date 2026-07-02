@@ -47,7 +47,7 @@ export default function SearchPage() {
     setLoading(true);
     setResults([]);
     try {
-      const params = { q: term, max_results: 10 };
+      const params = { q: term, max_results: 50 };
       if (country && country !== "any") params.country = country;
       if (language && language !== "any") params.language = language;
       if (minSubs) params.min_subs = Number(minSubs);
