@@ -575,6 +575,8 @@ async def search(
     has_website: Optional[bool] = None,
     active_days: Optional[int] = None,
     use_ai: bool = True,
+    page_token: Optional[str] = None,
+    order: str = "relevance",
 ):
     """Search YouTube channels then enrich each in parallel."""
     if not YT_API_KEY:
@@ -591,6 +593,10 @@ async def search(
             params["regionCode"] = country
         if language:
             params["relevanceLanguage"] = language
+        if order:
+            params["order"] = order
+        if page_token:
+            params["pageToken"] = page_token
         data = await yt_get(http, "/search", params)
         ids = [item["snippet"]["channelId"] for item in data.get("items", []) if item.get("snippet", {}).get("channelId")]
         ids = list(dict.fromkeys(ids))
@@ -654,7 +660,12 @@ async def search(
         summaries.append(ChannelSummary(**{
             k: getattr(c, k) for k in ChannelSummary.model_fields.keys()
         }).model_dump())
-    return {"query": q, "count": len(summaries), "results": summaries}
+    return {
+        "query": q,
+        "count": len(summaries),
+        "next_page_token": data.get("nextPageToken"),
+        "results": summaries
+    }
 
 
 @api_router.get("/channel/{channel_id}", response_model=ChannelDetail)

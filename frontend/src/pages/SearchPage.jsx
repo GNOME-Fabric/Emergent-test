@@ -40,14 +40,19 @@ export default function SearchPage() {
   const [hasInsta, setHasInsta] = useState(false);
   const [hasLinkedin, setHasLinkedin] = useState(false);
   const [hasWebsite, setHasWebsite] = useState(false);
+  const [order, setOrder] = useState("relevance");
+  const [nextPageToken, setNextPageToken] = useState(null);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const runSearch = async (query) => {
     const term = (query ?? q).trim();
     if (!term) { toast.error("Enter a keyword, niche, or creator to search"); return; }
     setLoading(true);
     setResults([]);
+    setNextPageToken(null);
     try {
       const params = { q: term, max_results: 50 };
+      if (order) params.order = order;
       if (country && country !== "any") params.country = country;
       if (language && language !== "any") params.language = language;
       if (minSubs) params.min_subs = Number(minSubs);
@@ -61,6 +66,7 @@ export default function SearchPage() {
 
       const { data } = await api.get("/search", { params });
       setResults(data.results || []);
+      setNextPageToken(data.next_page_token || null);
       setMeta({ q: data.query, count: data.count });
       if ((data.results || []).length === 0) {
         toast.info("No creators matched your filters. Try loosening constraints.");
@@ -69,6 +75,34 @@ export default function SearchPage() {
       toast.error(e?.response?.data?.detail || "Search failed");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadMore = async () => {
+    if (!nextPageToken || loading || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const params = { q: q.trim(), max_results: 50, page_token: nextPageToken };
+      if (order) params.order = order;
+      if (country && country !== "any") params.country = country;
+      if (language && language !== "any") params.language = language;
+      if (minSubs) params.min_subs = Number(minSubs);
+      if (maxSubs) params.max_subs = Number(maxSubs);
+      if (minEng) params.min_engagement = Number(minEng);
+      if (activeDays && activeDays !== "any") params.active_days = Number(activeDays);
+      if (hasEmail) params.has_email = true;
+      if (hasInsta) params.has_instagram = true;
+      if (hasLinkedin) params.has_linkedin = true;
+      if (hasWebsite) params.has_website = true;
+
+      const { data } = await api.get("/search", { params });
+      setResults(prev => [...prev, ...(data.results || [])]);
+      setNextPageToken(data.next_page_token || null);
+      setMeta(prev => prev ? { ...prev, count: prev.count + (data.results || []).length } : { q: q, count: (data.results || []).length });
+    } catch (e) {
+      toast.error(e?.response?.data?.detail || "Failed to load more results");
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -154,6 +188,19 @@ export default function SearchPage() {
               <span className="overline">Advanced filters</span>
             </div>
             <div className="p-4 space-y-5">
+              <FilterBlock label="YouTube Search Order">
+                <Select value={order} onValueChange={setOrder}>
+                  <SelectTrigger data-testid="filter-order" className="rounded-none h-9"><SelectValue placeholder="Relevance" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="relevance">Relevance</SelectItem>
+                    <SelectItem value="viewCount">View Count</SelectItem>
+                    <SelectItem value="videoCount">Video Count</SelectItem>
+                    <SelectItem value="date">Date (Newest)</SelectItem>
+                    <SelectItem value="rating">Rating</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FilterBlock>
+
               <FilterBlock label="Country">
                 <Select value={country} onValueChange={setCountry}>
                   <SelectTrigger data-testid="filter-country" className="rounded-none h-9"><SelectValue placeholder="Any" /></SelectTrigger>
@@ -324,6 +371,19 @@ export default function SearchPage() {
               </button>
             ))}
           </div>
+
+          {nextPageToken && (
+            <div className="flex justify-center mt-6">
+              <Button
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="rounded-none bg-[#09090B] hover:bg-[#002BF6] text-white font-semibold min-w-[200px]"
+              >
+                {loadingMore ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+                {loadingMore ? "Loading..." : "Load More Creators"}
+              </Button>
+            </div>
+          )}
         </div>
       </section>
     </div>
