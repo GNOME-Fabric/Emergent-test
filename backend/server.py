@@ -577,29 +577,52 @@ async def search(
     use_ai: bool = True,
     page_token: Optional[str] = None,
     order: str = "relevance",
+    search_type: str = "channel",
 ):
-    """Search YouTube channels then enrich each in parallel."""
+    """Search YouTube channels (by channel name or by video content) then enrich each in parallel."""
     if not YT_API_KEY:
         raise HTTPException(500, "YouTube API key not configured")
     max_results = max(1, min(max_results, 50))
     async with httpx.AsyncClient() as http:
-        params = {
-            "part": "snippet",
-            "q": q,
-            "type": "channel",
-            "maxResults": max_results,
-        }
-        if country:
-            params["regionCode"] = country
-        if language:
-            params["relevanceLanguage"] = language
-        if order:
-            params["order"] = order
-        if page_token:
-            params["pageToken"] = page_token
-        data = await yt_get(http, "/search", params)
-        ids = [item["snippet"]["channelId"] for item in data.get("items", []) if item.get("snippet", {}).get("channelId")]
-        ids = list(dict.fromkeys(ids))
+        if search_type == "video":
+            # Search by video content — extracts unique channel IDs from video results
+            params = {
+                "part": "snippet",
+                "q": q,
+                "type": "video",
+                "maxResults": max_results,
+            }
+            if country:
+                params["regionCode"] = country
+            if language:
+                params["relevanceLanguage"] = language
+            if order:
+                params["order"] = order
+            if page_token:
+                params["pageToken"] = page_token
+            data = await yt_get(http, "/search", params)
+            # For video search, channelId lives in snippet.channelId directly
+            ids = [item["snippet"]["channelId"] for item in data.get("items", []) if item.get("snippet", {}).get("channelId")]
+            ids = list(dict.fromkeys(ids))  # deduplicate channels that had multiple matching videos
+        else:
+            # Default: search by channel name/description
+            params = {
+                "part": "snippet",
+                "q": q,
+                "type": "channel",
+                "maxResults": max_results,
+            }
+            if country:
+                params["regionCode"] = country
+            if language:
+                params["relevanceLanguage"] = language
+            if order:
+                params["order"] = order
+            if page_token:
+                params["pageToken"] = page_token
+            data = await yt_get(http, "/search", params)
+            ids = [item["snippet"]["channelId"] for item in data.get("items", []) if item.get("snippet", {}).get("channelId")]
+            ids = list(dict.fromkeys(ids))
 
     # Enrich WITHOUT per-channel AI (fast). We'll batch AI at the end.
     sem = asyncio.Semaphore(5)

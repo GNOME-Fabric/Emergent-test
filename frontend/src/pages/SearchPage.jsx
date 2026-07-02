@@ -41,6 +41,7 @@ export default function SearchPage() {
   const [hasLinkedin, setHasLinkedin] = useState(false);
   const [hasWebsite, setHasWebsite] = useState(false);
   const [order, setOrder] = useState("relevance");
+  const [searchType, setSearchType] = useState("channel");
   const [nextPageToken, setNextPageToken] = useState(null);
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -53,6 +54,7 @@ export default function SearchPage() {
     try {
       const params = { q: term, max_results: 50 };
       if (order) params.order = order;
+      if (searchType) params.search_type = searchType;
       if (country && country !== "any") params.country = country;
       if (language && language !== "any") params.language = language;
       if (minSubs) params.min_subs = Number(minSubs);
@@ -84,6 +86,7 @@ export default function SearchPage() {
     try {
       const params = { q: q.trim(), max_results: 50, page_token: nextPageToken };
       if (order) params.order = order;
+      if (searchType) params.search_type = searchType;
       if (country && country !== "any") params.country = country;
       if (language && language !== "any") params.language = language;
       if (minSubs) params.min_subs = Number(minSubs);
@@ -188,6 +191,38 @@ export default function SearchPage() {
               <span className="overline">Advanced filters</span>
             </div>
             <div className="p-4 space-y-5">
+              <FilterBlock label="Search Mode">
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    data-testid="mode-channel"
+                    onClick={() => setSearchType("channel")}
+                    className={`px-2 py-2 text-xs font-semibold border transition-colors ${
+                      searchType === "channel"
+                        ? "bg-[#09090B] text-white border-[#09090B]"
+                        : "bg-white text-zinc-600 border-zinc-300 hover:border-zinc-500"
+                    }`}
+                  >
+                    📺 By Channel
+                  </button>
+                  <button
+                    data-testid="mode-video"
+                    onClick={() => setSearchType("video")}
+                    className={`px-2 py-2 text-xs font-semibold border transition-colors ${
+                      searchType === "video"
+                        ? "bg-[#002BF6] text-white border-[#002BF6]"
+                        : "bg-white text-zinc-600 border-zinc-300 hover:border-zinc-500"
+                    }`}
+                  >
+                    🎬 By Video
+                  </button>
+                </div>
+                <p className="text-xs text-zinc-400 mt-1">
+                  {searchType === "video"
+                    ? "Finds creators who published videos about this topic"
+                    : "Finds channels whose name/description matches the term"}
+                </p>
+              </FilterBlock>
+
               <FilterBlock label="YouTube Search Order">
                 <Select value={order} onValueChange={setOrder}>
                   <SelectTrigger data-testid="filter-order" className="rounded-none h-9"><SelectValue placeholder="Relevance" /></SelectTrigger>
