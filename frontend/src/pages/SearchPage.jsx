@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Filter, Download, ArrowUpRight, Mail, Instagram, Linkedin, Globe, Loader2 } from "lucide-react";
 import { api, fmtNumber, fmtPct, fmtDate, scoreColor } from "../lib/apiClient";
@@ -25,25 +25,77 @@ const SAMPLE_NICHES = ["ai automation", "youtube automation", "digital marketing
 
 export default function SearchPage() {
   const nav = useNavigate();
-  const [q, setQ] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState([]);
-  const [meta, setMeta] = useState(null);
 
-  const [country, setCountry] = useState("");
-  const [language, setLanguage] = useState("");
-  const [minSubs, setMinSubs] = useState("");
-  const [maxSubs, setMaxSubs] = useState("");
-  const [minEng, setMinEng] = useState("");
-  const [activeDays, setActiveDays] = useState("");
-  const [hasEmail, setHasEmail] = useState(false);
-  const [hasInsta, setHasInsta] = useState(false);
-  const [hasLinkedin, setHasLinkedin] = useState(false);
-  const [hasWebsite, setHasWebsite] = useState(false);
-  const [order, setOrder] = useState("relevance");
-  const [searchType, setSearchType] = useState("channel");
-  const [nextPageToken, setNextPageToken] = useState(null);
+  const getSessionValue = (key, defaultValue) => {
+    try {
+      const saved = sessionStorage.getItem(key);
+      if (saved !== null) return JSON.parse(saved);
+    } catch (e) {
+      console.error("Error reading from sessionStorage", e);
+    }
+    return defaultValue;
+  };
+
+  const [q, setQ] = useState(() => getSessionValue("search_q", ""));
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState(() => getSessionValue("search_results", []));
+  const [meta, setMeta] = useState(() => getSessionValue("search_meta", null));
+
+  const [country, setCountry] = useState(() => getSessionValue("search_country", ""));
+  const [language, setLanguage] = useState(() => getSessionValue("search_language", ""));
+  const [minSubs, setMinSubs] = useState(() => getSessionValue("search_minSubs", ""));
+  const [maxSubs, setMaxSubs] = useState(() => getSessionValue("search_maxSubs", ""));
+  const [minEng, setMinEng] = useState(() => getSessionValue("search_minEng", ""));
+  const [activeDays, setActiveDays] = useState(() => getSessionValue("search_activeDays", ""));
+  const [hasEmail, setHasEmail] = useState(() => getSessionValue("search_hasEmail", false));
+  const [hasInsta, setHasInsta] = useState(() => getSessionValue("search_hasInsta", false));
+  const [hasLinkedin, setHasLinkedin] = useState(() => getSessionValue("search_hasLinkedin", false));
+  const [hasWebsite, setHasWebsite] = useState(() => getSessionValue("search_hasWebsite", false));
+  const [order, setOrder] = useState(() => getSessionValue("search_order", "relevance"));
+  const [searchType, setSearchType] = useState(() => getSessionValue("search_searchType", "channel"));
+  const [nextPageToken, setNextPageToken] = useState(() => getSessionValue("search_nextPageToken", null));
   const [loadingMore, setLoadingMore] = useState(false);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("search_q", JSON.stringify(q));
+      sessionStorage.setItem("search_results", JSON.stringify(results));
+      sessionStorage.setItem("search_meta", JSON.stringify(meta));
+      sessionStorage.setItem("search_country", JSON.stringify(country));
+      sessionStorage.setItem("search_language", JSON.stringify(language));
+      sessionStorage.setItem("search_minSubs", JSON.stringify(minSubs));
+      sessionStorage.setItem("search_maxSubs", JSON.stringify(maxSubs));
+      sessionStorage.setItem("search_minEng", JSON.stringify(minEng));
+      sessionStorage.setItem("search_activeDays", JSON.stringify(activeDays));
+      sessionStorage.setItem("search_hasEmail", JSON.stringify(hasEmail));
+      sessionStorage.setItem("search_hasInsta", JSON.stringify(hasInsta));
+      sessionStorage.setItem("search_hasLinkedin", JSON.stringify(hasLinkedin));
+      sessionStorage.setItem("search_hasWebsite", JSON.stringify(hasWebsite));
+      sessionStorage.setItem("search_order", JSON.stringify(order));
+      sessionStorage.setItem("search_searchType", JSON.stringify(searchType));
+      sessionStorage.setItem("search_nextPageToken", JSON.stringify(nextPageToken));
+    } catch (e) {
+      console.error("Failed to save search state to sessionStorage", e);
+    }
+  }, [
+    q,
+    results,
+    meta,
+    country,
+    language,
+    minSubs,
+    maxSubs,
+    minEng,
+    activeDays,
+    hasEmail,
+    hasInsta,
+    hasLinkedin,
+    hasWebsite,
+    order,
+    searchType,
+    nextPageToken,
+  ]);
+
 
   const runSearch = async (query) => {
     const term = (query ?? q).trim();
